@@ -1,0 +1,209 @@
+{{ header }}{{ column_left }}
+<div id="content">
+    <div class="page-header">
+        <div class="container-fluid">
+            <div class="pull-right">
+                <a href="{{ cancel }}" data-toggle="tooltip" title="{{ button_cancel }}" class="btn btn-default"><i
+                            class="fa fa-reply"></i></a></div>
+            <h1>{{ heading_title }}</h1>
+            <ul class="breadcrumb">
+                {% for breadcrumb in breadcrumbs %}
+                    <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="container-fluid">
+        {% if error_warning %}
+            <div class="alert alert-danger alert-dismissible"><i
+                        class="fa fa-exclamation-circle"></i> {{ error_warning }}
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+            </div>
+        {% endif %}
+        <div class="row">
+            <div class="col-md-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Сваляне</h3>
+                    </div>
+
+                    <div class="panel-body">
+                        <div class="form-group">
+                            <label for="month">Избери месец</label>
+                            <select name="filter_month" id="month" class="form-control">
+                                {% for monthNumber,monthName in months %}
+                                    <option value="{{ monthNumber }}" {% if(monthNumber == selected_month) %} selected {% endif %}>{{ monthName }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <button class="btn btn-primary" onclick="downloadFile()">Създай експорт</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Настройки</h3>
+                    </div>
+                    <div class="panel-body">
+                        <form method="post">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="eik">ЕИК <br />на ЗЛ</label>
+                                        <input type="text" class="form-control" name="nra_audit_eik" id="eik" value="{{ settings['nra_audit_eik'] }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="shopUniqueNumber">Уникален номер на електронен магазин</label>
+                                        <input type="text" class="form-control" name="nra_audit_shopUniqueNumber" id="shopUniqueNumber" value="{{ settings['nra_audit_shopUniqueNumber'] }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="domain">Наименование на домейна на електронния магазин</label>
+                                        <input type="text" class="form-control" name="nra_audit_domain" id="domain" value="{{ settings['nra_audit_domain'] }}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-check">
+                                <input type="radio" name="nra_audit_isMarketplace" id="marketplaceTrue" value="1" class="form-check-input" {% if(settings['nra_audit_isMarketplace'] == 1) %} checked {% endif %}>
+                                <label for="marketplaceTrue" class="form-check-label">Маркетплейс</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="radio" name="nra_audit_isMarketplace" id="marketplaceFalse" value="0" class="form-check-input" {% if(settings['nra_audit_isMarketplace'] == 0) %} checked {% endif %}>
+                                <label for="marketplaceFalse" class="form-check-label">Собствен магазин</label>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Освободени плащания по чл. 3 плащане без ППП</label>
+                                        {% for method in payment_methods %}
+                                            <div class="form-check">
+                                                <input type="checkbox" name="nra_audit_withoutPostPayment[]"
+                                                {% if(method['code'] in settings['nra_audit_withoutPostPayment']) %} checked {% endif %}
+                                                       id="withoutPostPayment_{{ method['code'] }}" value="{{ method['code'] }}">
+                                                <label for="withoutPostPayment_{{ method['code'] }}" class="form-check-label">{{ method['title'] }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Наложен платеж с ППП</label>
+                                        {% for method in payment_methods %}
+                                            <div class="form-check">
+                                                <input type="checkbox" name="nra_audit_WithPostPayment[]"
+                                                        {% if(method['code'] in settings['nra_audit_WithPostPayment']) %} checked {% endif %}
+                                                       id="WithPostPayment_{{ method['code'] }}" value="{{ method['code'] }}">
+                                                <label for="WithPostPayment_{{ method['code'] }}" class="form-check-label">{{ method['title'] }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Доставчик на платежни услуги</label>
+                                        {% for method in payment_methods %}
+                                            <div class="form-check">
+                                                <input type="checkbox" name="nra_audit_PaymentService[]"
+                                                        {% if(method['code'] in settings['nra_audit_PaymentService']) %} checked {% endif %}
+                                                       id="PaymentService_{{ method['code'] }}" value="{{ method['code'] }}">
+                                                <label for="PaymentService_{{ method['code'] }}" class="form-check-label">{{ method['title'] }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Друго</label>
+                                        {% for method in payment_methods %}
+                                            <div class="form-check">
+                                                <input type="checkbox" name="nra_audit_Other[]"
+                                                        {% if(method['code'] in settings['nra_audit_Other']) %} checked {% endif %}
+                                                       id="Other_{{ method['code'] }}" value="{{ method['code'] }}">
+                                                <label for="Other_{{ method['code'] }}" class="form-check-label">{{ method['title'] }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Виртуален ПОС - терминал</label>
+                                        {% for method in payment_methods %}
+                                            <div class="form-check">
+                                                <input type="checkbox" name="nra_audit_VirtualPOSTerminal[]"
+                                                        {% if(method['code'] in settings['nra_audit_VirtualPOSTerminal']) %} checked {% endif %}
+                                                       id="virtualPos_{{ method['code'] }}" value="{{ method['code'] }}">
+                                                <label for="virtualPos_{{ method['code'] }}" class="form-check-label">{{ method['title'] }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="virtualPosNumber">Номер на виртуален ПОС терминал</label>
+                                        <input type="text" class="form-control" name="nra_audit_virtualPosNumber" id="virtualPosNumber" value="{{ settings['nra_audit_virtualPosNumber'] }}">
+                                        <small class="help-block">Ще бъде използвано по подразбиране</small>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="paymentProcessorIdentifier">Идентификатор на доставчика на плащане</label>
+                                        <input type="text" class="form-control" name="nra_audit_paymentProcessorIdentifier" id="paymentProcessorIdentifier" value="{{ settings['nra_audit_paymentProcessorIdentifier'] }}">
+                                        <small class="help-block">Ще бъде използвано по подразбиране</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="completedStatusId">Статус на завършени поръчки</label>
+                                        <select name="nra_audit_completed_status_id" id="completedStatusId" class="form-control">
+                                            {% for status in statuses %}
+                                                <option value="{{ status['order_status_id'] }}" {% if(status['order_status_id'] == settings['nra_audit_completed_status_id']) %} selected {% endif %}>{{ status['name'] }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="refundedStatusId">Статус на върнати поръчки</label>
+                                        <select name="nra_audit_refunded_status_id" id="refundedStatusId" class="form-control">
+                                            {% for status in statuses %}
+                                                <option value="{{ status['order_status_id'] }}" {% if(status['order_status_id'] == settings['nra_audit_refunded_status_id']) %} selected {% endif %}>{{ status['name'] }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="defaultRefundMethod">Метод на връщане по подразбиране</label>
+                                        <select name="nra_audit_default_refund_method" id="defaultRefundMethod" class="form-control">
+                                            {% for refundMethod in refundMethods %}
+                                                <option value="{{ refundMethod['value'] }}" {% if(refundMethod['value'] == settings['nra_audit_default_refund_method']) %} selected {% endif %}>{{ refundMethod['title'] }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-success">Запиши настройките</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript"><!--
+    let downloadFile = function(){
+        url = new URL(window.location.href)
+        url.searchParams.set('filter_month', $('#month').val())
+        url.searchParams.set('download', '1')
+        location = url.toString()
+    }
+    //--></script>
+{{ footer }}
