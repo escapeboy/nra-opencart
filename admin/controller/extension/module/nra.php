@@ -65,7 +65,7 @@ class ControllerExtensionModuleNra extends Controller
                         'documentNumber' => sprintf('%s%s', $result['invoice_prefix'], $result['invoice_no']),
                         'documentDate' => $result['date_added'],
                         'orderDate' => $result['date_added'],
-                        'items' => $this->getOrderItems($result['order_id']),
+                        'items' => $this->getOrderItems($result['order_id'], $data['settings']),
                         'orderUniqueNumber' => $result['order_id'],
                         'paymentProcessorIdentifier' => $data['settings']['nra_audit_paymentProcessorIdentifier'],
                         'paymentType' => $this->getPaymentType($result, $data['settings']),
@@ -86,7 +86,7 @@ class ControllerExtensionModuleNra extends Controller
             $jsonResult = [
                 'domain' => $data['settings']['nra_audit_domain'],
                 'eik' => $data['settings']['nra_audit_eik'],
-                'isMarketplace' => (bool) $data['settings']['nra_audit_isMarketplace'],
+                'isMarketplace' => (bool)$data['settings']['nra_audit_isMarketplace'],
                 'month' => $data['selected_month'],
                 'orders' => $orders,
                 'returned' => $refunded,
@@ -145,7 +145,7 @@ class ControllerExtensionModuleNra extends Controller
         return null;
     }
 
-    private function getOrderItems($order_id)
+    private function getOrderItems($order_id, $settings)
     {
         $orderItems = [];
         $items = $this->model_extension_module_nra->getOrderItems(
@@ -155,12 +155,22 @@ class ControllerExtensionModuleNra extends Controller
         foreach ($items as $item) {
             $orderItems[] = [
                 'name' => $item['name'],
-                'price' => $item['price'],
+                'price' => $this->calculateItemPrice($item, $settings),
                 'quantity' => $item['quantity'],
-                'vatRate' => $item['tax']
+                'vatRate' => $settings['nra_audit_final_prices_with_tax'] ? $item['tax'] : $settings['nra_audit_global_tax']
             ];
         }
 
         return $orderItems;
+    }
+
+    private function calculateItemPrice($item, $settings)
+    {
+        $itemPrice = $item['price'];
+        if ($settings['nra_audit_final_prices_with_tax']) {
+            return $itemPrice;
+        }
+
+        return round($itemPrice / (1 + ($settings['nra_audit_global_tax'] / 100)), 2);
     }
 }

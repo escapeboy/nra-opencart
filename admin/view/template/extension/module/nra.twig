@@ -190,6 +190,25 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="taxCalculation">Цените на продуктите са крайни (с ДДС)</label>
+                                        <select name="nra_audit_final_prices_with_tax" id="taxCalculation" class="form-control">
+                                            <option value="1" {% if(settings['nra_audit_final_prices_with_tax'] == 1) %} selected {% endif %}>Да</option>
+                                            <option value="0" {% if(settings['nra_audit_final_prices_with_tax'] != 1) %} selected {% endif %}>Не</option>
+                                        </select>
+                                        <small class="help-block">В случай, че изберете "Да" от цената на продукта автоматично ще се премахне ДДС-то по подразбиране</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="globalTax">ДДС по подразбиране</label>
+                                        <input type="number" step="1" min="0" name="nra_audit_global_tax" value="{{ settings['nra_audit_global_tax'] }}" id="globalTax" class="form-control">
+                                        <small class="help-block">Ако не използвате ДДС за всеки отделен продукт и цените на продуктите са крайни, можете да въведете глобална стойност на ДДС, която да бъде отчислена при генерирането на репорта</small>
+                                    </div>
+                                </div>
+                            </div>
                             <button type="submit" class="btn btn-success">Запиши настройките</button>
                         </form>
                     </div>
